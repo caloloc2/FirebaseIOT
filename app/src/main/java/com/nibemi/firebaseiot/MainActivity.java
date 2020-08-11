@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,10 +17,14 @@ import com.google.firebase.database.ValueEventListener;
 public class MainActivity extends AppCompatActivity {
 
     TextView txt_temperatura, txt_humo;
-    Button btn_cerrar;
+    Button btn_cerrar, btn_actuador1, btn_actuador2;
     private FirebaseDatabase mDatabase;
     private DatabaseReference mReferenceHumo;
     private DatabaseReference mReferenceTemp;
+    private DatabaseReference mReferenceAct1;
+    private DatabaseReference mReferenceAct2;
+
+    private int estado_actuador1, estado_actuador2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance();
         mReferenceHumo = mDatabase.getReference("humo");
         mReferenceTemp = mDatabase.getReference("temp");
+        mReferenceAct1 = mDatabase.getReference("act1");
+        mReferenceAct2 = mDatabase.getReference("act2");
 
         txt_temperatura = (TextView)findViewById(R.id.txt_temperatura);
         txt_humo = (TextView)findViewById(R.id.txt_humo);
@@ -40,6 +45,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 finish();
+            }
+        });
+
+        btn_actuador1 = (Button)findViewById(R.id.btn_actuador1);
+        btn_actuador1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mReferenceAct1.setValue(Math.abs(estado_actuador1 -1));
+            }
+        });
+
+        btn_actuador2 = (Button)findViewById(R.id.btn_actuador2);
+        btn_actuador2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mReferenceAct2.setValue(Math.abs(estado_actuador2 -1));
             }
         });
 
@@ -66,6 +87,42 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 txt_temperatura.setText("0 °C");
+            }
+        });
+
+        mReferenceAct1.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                int estado = Integer.parseInt(dataSnapshot.getValue().toString());
+                estado_actuador1 = estado;
+                if (estado_actuador1==0){
+                    btn_actuador1.setText("PRENDER ACTUADOR 1");
+                }else{
+                    btn_actuador1.setText("APAGAR ACTUADOR 1");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                estado_actuador1 = 0;
+            }
+        });
+
+        mReferenceAct2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                int estado = Integer.parseInt(dataSnapshot.getValue().toString());
+                estado_actuador2 = estado;
+                if (estado_actuador2==0){
+                    btn_actuador2.setText("PRENDER ACTUADOR 2");
+                }else{
+                    btn_actuador2.setText("APAGAR ACTUADOR 2");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                estado_actuador2 = 0;
             }
         });
     };
